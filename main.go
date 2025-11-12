@@ -414,70 +414,89 @@ func registerResources(server *mcp.Server) {
 }
 
 func registerPrompts(server *mcp.Server) {
-	// Blueprint Selection prompt
+	log.Println("[MAIN] Registering prompts...")
+
+	// 1. CAPABILITIES PROMPT - "How can you help me?"
 	server.RegisterPrompt(mcp.Prompt{
-		Name:        "select_blueprint",
-		Description: "Help user select the appropriate blueprint for their infrastructure needs",
-		Arguments: []mcp.Argument{
-			{
-				Name:        "requirements",
-				Description: "User's infrastructure requirements",
-				Required:    true,
-			},
-		},
+		Name:        "cloudgenie_capabilities",
+		Description: `Explains all CloudGenie IDP (Internal Developer Platform) MCP server capabilities. Shows available blueprints (currently xgitrepo for Git repositories, with React app + K8s deployment coming soon), resource management, and workflows. Use when user asks "what can you do?" or "how can you help me?"`,
+		Arguments:   []mcp.Argument{},
 	})
 
-	// Resource Configuration prompt
+	// 2. DEPLOY APPLICATION PROMPT - "Deploy react application in k8s"
 	server.RegisterPrompt(mcp.Prompt{
-		Name:        "configure_resource",
-		Description: "Guide user through resource configuration",
+		Name:        "deploy_application_k8s",
+		Description: `Guide for deploying applications (React, Node.js, etc.) to Kubernetes using IDP blueprints. Currently explains that React app + K8s deployment blueprint is coming soon. When available, will use blueprints to deploy containerized apps. Use when user wants to deploy applications to Kubernetes.`,
 		Arguments: []mcp.Argument{
 			{
-				Name:        "resource_type",
-				Description: "Type of resource to configure",
-				Required:    true,
+				Name:        "app_type",
+				Description: "Type of application to deploy (e.g., react, nodejs, python, java)",
+				Required:    false,
 			},
 			{
-				Name:        "blueprint_id",
-				Description: "ID of the blueprint to use",
+				Name:        "app_name",
+				Description: "Name for the application deployment",
 				Required:    false,
 			},
 		},
 	})
 
-	// Troubleshooting prompt
+	// 3. GIT REPOSITORY PROMPT - "Create a git repository"
+	// 3. GIT REPOSITORY PROMPT - "Create a git repository"
+	server.RegisterPrompt(mcp.Prompt{
+		Name:        "create_git_repository",
+		Description: `Complete guide for creating Git repositories using the xgitrepo blueprint in the IDP (Internal Developer Platform). Explains how to discover the xgitrepo blueprint, understand its parameters, and create Git repository resources. Use when user wants to create a Git repository.`,
+		Arguments: []mcp.Argument{
+			{
+				Name:        "repo_name",
+				Description: "Desired name for the Git repository",
+				Required:    false,
+			},
+			{
+				Name:        "description",
+				Description: "Description of the repository purpose",
+				Required:    false,
+			},
+		},
+	})
+
+	// 4. DEPLOY INFRASTRUCTURE PROMPT - General resource creation via blueprints
+	server.RegisterPrompt(mcp.Prompt{
+		Name:        "deploy_infrastructure",
+		Description: `Step-by-step guide for creating resources using IDP blueprints. Explains the blueprint-based model: first discover available blueprints (like xgitrepo), understand their parameters, then create resource instances. Use when user wants to create any resource type.`,
+		Arguments: []mcp.Argument{
+			{
+				Name:        "blueprint_id",
+				Description: "ID of the blueprint to use (e.g., xgitrepo)",
+				Required:    false,
+			},
+			{
+				Name:        "resource_name",
+				Description: "Name for the resource to be created",
+				Required:    false,
+			},
+		},
+	})
+
+	// 5. TROUBLESHOOT RESOURCE PROMPT
 	server.RegisterPrompt(mcp.Prompt{
 		Name:        "troubleshoot_resource",
-		Description: "Help troubleshoot resource issues",
+		Description: `Comprehensive troubleshooting guide for IDP resources. Covers checking status, diagnosing common issues (pending, failed, error states), backend health checks, and recovery actions. Use when user reports problems with resource creation or deployments.`,
 		Arguments: []mcp.Argument{
 			{
 				Name:        "resource_id",
-				Description: "ID of the resource having issues",
-				Required:    true,
-			},
-			{
-				Name:        "error_description",
-				Description: "Description of the error or issue",
+				Description: "ID of the resource experiencing issues",
 				Required:    false,
 			},
 		},
 	})
 
-	// Infrastructure Design prompt
+	// 6. LIST BLUEPRINTS PROMPT
 	server.RegisterPrompt(mcp.Prompt{
-		Name:        "design_infrastructure",
-		Description: "Help design infrastructure architecture using CloudGenie",
-		Arguments: []mcp.Argument{
-			{
-				Name:        "requirements",
-				Description: "Infrastructure requirements and constraints",
-				Required:    true,
-			},
-			{
-				Name:        "scale",
-				Description: "Expected scale (small, medium, large, enterprise)",
-				Required:    false,
-			},
-		},
+		Name:        "list_blueprints",
+		Description: `Guide for discovering available IDP blueprints. Explains that blueprints define what resources can be created (currently xgitrepo for Git repositories, with React+K8s blueprint coming). Shows how to list blueprints, examine parameters, and choose the right one. Use when user wants to see what can be created.`,
+		Arguments:   []mcp.Argument{},
 	})
+
+	log.Println("[MAIN] Prompts registered successfully (6 prompts)")
 }
