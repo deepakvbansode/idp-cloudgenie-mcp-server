@@ -10,40 +10,56 @@ import (
 )
 
 func main() {
+	// Configure logging
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+	
+	log.Println("==========================================")
+	log.Println("CloudGenie MCP Server Starting...")
+	log.Println("==========================================")
+	
 	// Get CloudGenie backend URL from environment variable or use default
 	backendURL := os.Getenv("CLOUDGENIE_BACKEND_URL")
 	if backendURL == "" {
 		backendURL = "http://localhost:50051" // Default local backend
 	}
+	log.Printf("[MAIN] CloudGenie backend URL: %s", backendURL)
 
 	// Create CloudGenie API client
+	log.Println("[MAIN] Creating CloudGenie API client...")
 	client := cloudgenie.NewClient(backendURL)
 
 	// Create a new MCP server
+	log.Println("[MAIN] Initializing MCP server...")
 	server := mcp.NewServer("idp-cloudgenie-mcp-server", "1.0.0")
 
 	// Register CloudGenie API tools
+	log.Println("[MAIN] Registering CloudGenie API tools...")
 	registerTools(server, client)
 
 	// Register example resources
+	log.Println("[MAIN] Registering resources...")
 	registerResources(server)
 
 	// Register example prompts
+	log.Println("[MAIN] Registering prompts...")
 	registerPrompts(server)
 
-	log.Printf("CloudGenie MCP Server initialized with backend URL: %s", backendURL)
+	log.Println("[MAIN] CloudGenie MCP Server initialized successfully")
+	log.Printf("[MAIN] Backend URL: %s", backendURL)
 
 	// Start HTTP server if MCP_HTTP_PORT is set, else use stdio
 	if port := os.Getenv("MCP_HTTP_PORT"); port != "" {
 		addr := ":" + port
-		log.Printf("Starting in HTTP mode on %s", addr)
+		log.Printf("[MAIN] Starting in HTTP mode on %s", addr)
+		log.Println("==========================================")
 		if err := server.StartHTTP(addr); err != nil {
-			log.Fatalf("HTTP server error: %v", err)
+			log.Fatalf("[MAIN] HTTP server error: %v", err)
 		}
 	} else {
-		log.Printf("Starting in stdio mode")
+		log.Println("[MAIN] Starting in stdio mode")
+		log.Println("==========================================")
 		if err := server.Start(); err != nil {
-			log.Fatalf("Server error: %v", err)
+			log.Fatalf("[MAIN] Server error: %v", err)
 		}
 	}
 }
