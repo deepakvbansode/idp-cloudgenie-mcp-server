@@ -2,10 +2,10 @@ package tools
 
 // CreateResourceInput defines the input parameters for creating a resource
 type CreateResourceInput struct {
-	Name        string                 `json:"name" jsonschema:"Resource name"`
-	BlueprintName string                 `json:"blueprint_name" jsonschema:"Blueprint name"`
-	Description    string                 `json:"description,omitempty" jsonschema:"Resource description"`
-	Spec          map[string]interface{} `json:"spec" jsonschema:"Resource properties"`
+	Name          string                 `json:"name" jsonschema:"Resource name"`
+	BlueprintName string                 `json:"blueprintName" jsonschema:"Blueprint name"`
+	Description   string                 `json:"description,omitempty" jsonschema:"Resource description"`
+	Spec         map[string]interface{} `json:"spec" jsonschema:"Resource properties"`
 }
 
 // CreateResourceOutput defines the output returned after creating a resource
