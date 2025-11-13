@@ -1,0 +1,113 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloudgenie
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudgenie-mcp-config
+  namespace: cloudgenie
+data:
+  CLOUDGENIE_BACKEND_URL: "http://cloudgenie-backend:50051"
+  MCP_HTTP_PORT: "8080"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudgenie-mcp-server
+  namespace: cloudgenie
+  labels:
+    app: cloudgenie-mcp-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloudgenie-mcp-server
+  template:
+    metadata:
+      labels:
+        app: cloudgenie-mcp-server
+    spec:
+      containers:
+        - name: mcp-server
+          image: your-registry/cloudgenie-mcp-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            - name: CLOUDGENIE_BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudgenie-mcp-config
+                  key: CLOUDGENIE_BACKEND_URL
+            - name: MCP_HTTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: cloudgenie-mcp-config
+                  key: MCP_HTTP_PORT
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudgenie-mcp-server
+  namespace: cloudgenie
+  labels:
+    app: cloudgenie-mcp-server
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: cloudgenie-mcp-server
+
+---
+# Optional: Ingress for external access
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloudgenie-mcp-ingress
+  namespace: cloudgenie
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: cloudgenie-mcp.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cloudgenie-mcp-server
+                port:
+                  number: 8080
